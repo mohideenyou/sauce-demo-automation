@@ -1,52 +1,56 @@
 const { test, expect } = require('./fixtures');
+const { skipIfConnectionVerification } = require('./siteProtection');
 
 test.describe('Module 1 - Home Page and Module 5 - Navigation', () => {
   test.beforeEach(async ({ homePage }) => {
-    await homePage.navigate();
+    await homePage.open();
+    await skipIfConnectionVerification(homePage, test);
   });
 
-  test('TC_001 verifies the home page loads successfully', async ({ page }) => {
-    await expect(page).toHaveURL('https://sauce-demo.myshopify.com/');
+  test('TC_001 verifies the home page loads successfully', async ({ homePage }) => {
+    expect(await homePage.isHomePageOpen()).toBeTruthy();
   });
 
   test('TC_002 verifies the page title', async ({ homePage }) => {
-    await expect.poll(() => homePage.getTitle()).toBe('Sauce Demo');
+    expect(await homePage.getTitle()).toBe('Sauce Demo');
   });
 
   test('TC_003 verifies the company logo is visible', async ({ homePage }) => {
-    await expect(homePage.logo).toBeVisible();
+    expect(await homePage.isLogoVisible()).toBeTruthy();
   });
 
   test('TC_004 verifies the navigation menu', async ({ homePage }) => {
-    await expect(homePage.navHome).toBeVisible();
-    await expect(homePage.navCatalog).toBeVisible();
-    await expect(homePage.navAboutUs).toBeVisible();
+    expect(await homePage.isNavigationVisible()).toBeTruthy();
   });
 
-  test('TC_006 verifies About Us page navigation', async ({ homePage, page }) => {
-    await homePage.navAboutUs.click();
-    await expect(page).toHaveURL(/about-us/);
+  test('TC_006 verifies About Us page navigation', async ({ homePage }) => {
+    await homePage.openAboutUs();
+    await skipIfConnectionVerification(homePage, test);
+    expect(await homePage.isAboutUsOpen()).toBeTruthy();
   });
 
-  test('TC_034 navigates Home to Products', async ({ homePage, page }) => {
-    await homePage.clickCatalog();
-    await expect(page).toHaveURL(/collections\/all/);
+  test('TC_034 navigates Home to Products', async ({ homePage }) => {
+    await homePage.openCatalog();
+    await skipIfConnectionVerification(homePage, test);
+    expect(await homePage.isCatalogOpen()).toBeTruthy();
   });
 
-  test('TC_035 navigates Products to Home', async ({ homePage, page }) => {
-    await homePage.clickCatalog();
-    await homePage.navHome.click();
-    await expect(page).toHaveURL('https://sauce-demo.myshopify.com/');
+  test('TC_035 navigates Products to Home', async ({ homePage }) => {
+    await homePage.openCatalog();
+    await skipIfConnectionVerification(homePage, test);
+    await homePage.returnHome();
+    expect(await homePage.isHomePageOpen()).toBeTruthy();
   });
 
-  test('TC_036 supports browser back navigation', async ({ homePage, page }) => {
-    await homePage.clickCatalog();
-    await page.goBack();
-    await expect(page).toHaveURL('https://sauce-demo.myshopify.com/');
+  test('TC_036 supports browser back navigation', async ({ homePage }) => {
+    await homePage.openCatalog();
+    await skipIfConnectionVerification(homePage, test);
+    await homePage.returnToPreviousPage();
+    expect(await homePage.isHomePageOpen()).toBeTruthy();
   });
 
-  test('TC_038 refreshes the home page', async ({ page }) => {
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL('https://sauce-demo.myshopify.com/');
+  test('TC_038 refreshes the home page', async ({ homePage }) => {
+    await homePage.refresh();
+    expect(await homePage.isHomePageOpen()).toBeTruthy();
   });
 });

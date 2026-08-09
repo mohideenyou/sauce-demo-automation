@@ -3,7 +3,7 @@ class BasePage {
     this.page = page;
   }
 
-  async navigate(path = '/') {
+  async navigateTo(path = '/') {
     await this.page.goto(path, { waitUntil: 'domcontentloaded' });
   }
 
@@ -11,8 +11,15 @@ class BasePage {
     return this.page.title();
   }
 
-  async waitForElement(selector) {
-    return this.page.waitForSelector(selector);
+  async isCurrentPath(pathPattern) {
+    return pathPattern.test(new URL(this.page.url()).pathname);
+  }
+
+  async isConnectionVerificationDisplayed() {
+    return this.page
+      .getByRole('heading', { name: /your connection needs to be verified/i })
+      .isVisible({ timeout: 1500 })
+      .catch(() => false);
   }
 }
 

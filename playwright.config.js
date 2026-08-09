@@ -2,11 +2,19 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  timeout: 60000,
+  expect: {
+    timeout: 9000,
+  },
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: [['html', { open: 'never' }], ['list']],
+  reporter: [
+    ['html', { open: 'never' }],
+    ['list'],
+    ['allure-playwright', { outputFolder: 'allure-results', detail: true, suiteTitle: false }],
+  ],
   use: {
     baseURL: 'https://sauce-demo.myshopify.com',
     trace: 'on-first-retry',
@@ -16,26 +24,26 @@ module.exports = defineConfig({
     actionTimeout: 10000,
   },
   projects: [
-  {
-    name: 'chromium',
-    use: {
-      ...devices['chromium'],
-      headless: false,
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        headless: !!process.env.CI,
+      },
     },
-  },
-  {
-    name: 'firefox',
-    use: {
-      ...devices['firefox'],
-      headless: false,
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        headless: !!process.env.CI,
+      },
     },
-  },
-  {
-    name: 'webkit',
-    use: {
-      ...devices['webkit'],
-      headless: false,
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        headless: !!process.env.CI,
+      },
     },
-  },
-],
+  ],
 });

@@ -14,7 +14,22 @@ class CartPage extends BasePage {
       .first();
   }
 
-  async removeItem(index = 0) {
+  async isEmpty() {
+    return this.emptyCartMessage.isVisible();
+  }
+
+  async containsProduct(product) {
+    const cartText = await this.page.locator('body').innerText();
+    return cartText.includes(product.name) && cartText.includes(product.price);
+  }
+
+  async canCheckout() {
+    return (await this.checkoutButton.isVisible()) && (await this.checkoutButton.isEnabled());
+  }
+
+  async removeFirstProduct() {
+    const index = 0;
+
     if (await this.emptyCartMessage.isVisible()) {
       return;
     }
@@ -38,19 +53,17 @@ class CartPage extends BasePage {
       return;
     }
 
-    await this.updateQuantity(index, 0);
-  }
-
-  async updateQuantity(index = 0, quantity) {
     const quantityInput = this.page
-      .locator('form[action="/cart"] input[name="updates[]"], form[action="/cart"] input[type="number"]')
+      .locator(
+        'form[action="/cart"] input[name="updates[]"], form[action="/cart"] input[type="number"]'
+      )
       .nth(index);
 
     if (!(await quantityInput.count())) {
       return;
     }
 
-    await quantityInput.fill(String(quantity));
+    await quantityInput.fill('0');
     await this.updateButton.click();
   }
 }

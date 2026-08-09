@@ -8,10 +8,31 @@ class LoginPage extends BasePage {
     this.signInButton = page.locator('input[type="submit"][value="Sign In"]');
   }
 
-  async login(email, password) {
+  async open() {
+    await this.navigateTo('/account/login');
+  }
+
+  async signInWith(email, password) {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.signInButton.click();
+  }
+
+  async isSignInFormVisible() {
+    return this.emailInput.isVisible();
+  }
+
+  async isOnLoginOrChallengePage() {
+    return this.isCurrentPath(/\/account\/login|\/challenge/);
+  }
+
+  async showsSignInFeedback() {
+    const pageText = await this.page.locator('body').innerText();
+    return /invalid|incorrect|email|password|sign in/i.test(pageText);
+  }
+
+  async isNotBlockedByChallenge() {
+    return !/challenge|captcha/i.test(this.page.url());
   }
 }
 

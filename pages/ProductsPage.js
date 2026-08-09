@@ -12,6 +12,33 @@ class ProductsPage extends BasePage {
     return this.productItems.count();
   }
 
+  async hasVisibleProducts() {
+    return (await this.getProductCount()) > 0 && (await this.productItems.first().isVisible());
+  }
+
+  async getFirstProductName() {
+    return (await this.productNames.first().innerText()).trim();
+  }
+
+  async getFirstProductPrice() {
+    return (await this.productPrices.first().innerText()).trim();
+  }
+
+  async getVisibleProducts() {
+    const products = [];
+    const productCount = await this.getProductCount();
+
+    for (let index = 0; index < productCount; index += 1) {
+      const product = this.productItems.nth(index);
+      products.push({
+        name: (await product.locator('h3').innerText()).trim(),
+        price: (await product.locator('h4').innerText()).trim(),
+      });
+    }
+
+    return products;
+  }
+
   async openFirstProduct() {
     const firstProduct = this.productItems.first();
     const name = (await firstProduct.locator('h3').innerText()).trim();
@@ -19,13 +46,22 @@ class ProductsPage extends BasePage {
     return name;
   }
 
-  async clickProductByName(name) {
-    await this.page.locator('.product h3').filter({ hasText: name }).first().click();
+  async openProduct(name) {
+    await this.productItems.filter({ hasText: name }).first().click();
   }
 
-  async isSoldOut(name) {
-    const product = this.page.locator('.product').filter({ hasText: name });
-    return product.locator('.sold-out').isVisible();
+  async openFirstSoldOutProduct() {
+    const soldOutProduct = this.page
+      .locator('.product')
+      .filter({ hasText: /sold out/i })
+      .first();
+
+    if ((await soldOutProduct.count()) === 0) {
+      return false;
+    }
+
+    await soldOutProduct.locator('h3').click();
+    return true;
   }
 }
 
