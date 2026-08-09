@@ -19,22 +19,22 @@ module.exports = defineConfig({
   {
     name: 'chromium',
     use: {
-      ...devices['Desktop Chrome'],
-      headless: true,
+      ...devices['chromium'],
+      headless: false,
     },
   },
   {
     name: 'firefox',
     use: {
-      ...devices['Desktop Firefox'],
-      headless: true,
+      ...devices['firefox'],
+      headless: false,
     },
   },
   {
     name: 'webkit',
     use: {
-      ...devices['Desktop Safari'],
-      headless: true,
+      ...devices['webkit'],
+      headless: false,
     },
   },
 ],
