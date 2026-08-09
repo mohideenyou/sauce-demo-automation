@@ -1,4 +1,5 @@
 const { BasePage } = require('./BasePage');
+const { expect } = require('@playwright/test');
 
 class LoginPage extends BasePage {
   constructor(page) {
@@ -18,21 +19,24 @@ class LoginPage extends BasePage {
     await this.signInButton.click();
   }
 
-  async isSignInFormVisible() {
-    return this.emailInput.isVisible();
+  async expectSignInFormVisible() {
+    await expect(this.emailInput).toBeVisible();
+    await expect(this.passwordInput).toBeVisible();
+    await expect(this.signInButton).toBeVisible();
   }
 
-  async isOnLoginOrChallengePage() {
-    return this.isCurrentPath(/\/account\/login|\/challenge/);
+  async expectLoginOrChallengePage() {
+    await this.expectCurrentPath(/\/account\/login|\/challenge/);
   }
 
-  async showsSignInFeedback() {
-    const pageText = await this.page.locator('body').innerText();
-    return /invalid|incorrect|email|password|sign in/i.test(pageText);
+  async expectNoChallenge() {
+    await expect(this.page).not.toHaveURL(/challenge|captcha/i);
   }
 
-  async isNotBlockedByChallenge() {
-    return !/challenge|captcha/i.test(this.page.url());
+  async expectInvalidCredentialsRejected() {
+    await this.expectCurrentPath(/\/account\/login/);
+    await this.expectNoChallenge();
+    await this.expectSignInFormVisible();
   }
 }
 

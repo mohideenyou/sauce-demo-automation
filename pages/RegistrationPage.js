@@ -1,8 +1,10 @@
 const { BasePage } = require('./BasePage');
+const { expect } = require('@playwright/test');
 
 class RegistrationPage extends BasePage {
   constructor(page) {
     super(page);
+    this.registrationForm = page.locator('#create_customer');
     this.createAccountButton = page.locator('input[type="submit"][value="Create"]');
   }
 
@@ -14,13 +16,14 @@ class RegistrationPage extends BasePage {
     await this.createAccountButton.click();
   }
 
-  async isOnRegistrationOrChallengePage() {
-    return this.isCurrentPath(/\/account\/register|\/challenge/);
+  async expectRegistrationOrChallengePage() {
+    await this.expectCurrentPath(/\/account\/register|\/challenge/);
   }
 
-  async showsRequiredFieldGuidance() {
-    const pageText = await this.page.locator('body').innerText();
-    return /first name|last name|email|password|create account/i.test(pageText);
+  async expectRegistrationRemainsOpen() {
+    await this.expectCurrentPath(/\/account\/register/);
+    await expect(this.registrationForm).toBeVisible();
+    await expect(this.createAccountButton).toBeVisible();
   }
 }
 

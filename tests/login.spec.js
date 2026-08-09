@@ -1,8 +1,7 @@
-const { test, expect } = require('./fixtures');
-const { skipIfConnectionVerification } = require('./siteProtection');
+const { test } = require('./fixtures');
 
 test.describe('Login Module', () => {
-  test('verifies the login form accepts credentials', async ({ homePage, loginPage }) => {
+  test('verifies the login form accepts credentials', async ({ shoppingFlow, loginPage }) => {
     const email = process.env.SAUCE_DEMO_EMAIL;
     const password = process.env.SAUCE_DEMO_PASSWORD;
 
@@ -11,14 +10,10 @@ test.describe('Login Module', () => {
       'Set SAUCE_DEMO_EMAIL and SAUCE_DEMO_PASSWORD to run the login test.'
     );
 
-    await homePage.open();
-    await skipIfConnectionVerification(homePage, test);
-    await homePage.openLogin();
-    await skipIfConnectionVerification(loginPage, test);
-
-    expect(await loginPage.isSignInFormVisible()).toBeTruthy();
+    await shoppingFlow.openHome();
+    await shoppingFlow.openLoginPage();
+    await loginPage.expectSignInFormVisible();
     await loginPage.signInWith(email, password);
-
-    expect(await loginPage.isNotBlockedByChallenge()).toBeTruthy();
+    await loginPage.expectNoChallenge();
   });
 });

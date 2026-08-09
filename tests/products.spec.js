@@ -1,19 +1,17 @@
 const { test, expect } = require('./fixtures');
-const { skipIfConnectionVerification } = require('./siteProtection');
 
 test.describe('Module 2 - Product Listing and Module 3 - Product Details', () => {
-  test.beforeEach(async ({ homePage }) => {
-    await homePage.open();
-    await homePage.openCatalog();
-    await skipIfConnectionVerification(homePage, test);
+  test.beforeEach(async ({ shoppingFlow }) => {
+    await shoppingFlow.openHome();
+    await shoppingFlow.openCatalog();
   });
 
-  test('TC_009 verifies the products page opens', async ({ homePage }) => {
-    expect(await homePage.isCatalogOpen()).toBeTruthy();
+  test('TC_009 verifies the products page opens', async ({ headerNav }) => {
+    await headerNav.expectCatalogOpen();
   });
 
   test('TC_010 verifies products are listed', async ({ productsPage }) => {
-    expect(await productsPage.hasVisibleProducts()).toBeTruthy();
+    await productsPage.expectVisibleProducts();
   });
 
   test('TC_012 verifies the first product has a name', async ({ productsPage }) => {
@@ -28,23 +26,20 @@ test.describe('Module 2 - Product Listing and Module 3 - Product Details', () =>
     productsPage,
     productDetailPage,
   }) => {
-    await productsPage.openFirstProduct();
-    await skipIfConnectionVerification(productDetailPage, test);
-    expect(await productDetailPage.isProductDetailsOpen()).toBeTruthy();
+    await productsPage.openFirstProductAndReturnName();
+    await productDetailPage.expectProductDetailsOpen();
   });
 
   test('TC_017 verifies product title in details', async ({ productsPage, productDetailPage }) => {
-    const name = await productsPage.openFirstProduct();
-    await skipIfConnectionVerification(productDetailPage, test);
-    expect(await productDetailPage.getProductName()).toBe(name);
+    const productName = await productsPage.openFirstProductAndReturnName();
+    await productDetailPage.expectProductName(productName);
   });
 
   test('TC_022 verifies Add to Cart button is enabled', async ({
     productsPage,
     productDetailPage,
   }) => {
-    await productsPage.openFirstProduct();
-    await skipIfConnectionVerification(productDetailPage, test);
-    expect(await productDetailPage.isAddToCartAvailable()).toBeTruthy();
+    await productsPage.openFirstProductAndReturnName();
+    await productDetailPage.expectAddToCartAvailable();
   });
 });

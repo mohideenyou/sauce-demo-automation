@@ -1,4 +1,5 @@
 const { BasePage } = require('./BasePage');
+const { expect } = require('@playwright/test');
 
 class ProductsPage extends BasePage {
   constructor(page) {
@@ -12,8 +13,9 @@ class ProductsPage extends BasePage {
     return this.productItems.count();
   }
 
-  async hasVisibleProducts() {
-    return (await this.getProductCount()) > 0 && (await this.productItems.first().isVisible());
+  async expectVisibleProducts() {
+    await expect(this.productItems.first()).toBeVisible();
+    await expect.poll(() => this.getProductCount()).toBeGreaterThan(0);
   }
 
   async getFirstProductName() {
@@ -39,7 +41,7 @@ class ProductsPage extends BasePage {
     return products;
   }
 
-  async openFirstProduct() {
+  async openFirstProductAndReturnName() {
     const firstProduct = this.productItems.first();
     const name = (await firstProduct.locator('h3').innerText()).trim();
     await firstProduct.click();

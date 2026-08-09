@@ -1,3 +1,5 @@
+require('dotenv').config({ override: true, quiet: true });
+
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
@@ -28,21 +30,21 @@ module.exports = defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        headless: !!process.env.CI,
+        headless: true,
       },
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        headless: !!process.env.CI,
+        headless: true,
       },
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        headless: !!process.env.CI,
+        headless: true,
       },
     },
   ],

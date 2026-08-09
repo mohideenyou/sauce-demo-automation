@@ -1,26 +1,24 @@
-const { test, expect } = require('./fixtures');
-const { skipIfConnectionVerification } = require('./siteProtection');
+const { test } = require('./fixtures');
 
 test.describe('Negative authentication validation', () => {
-  test('shows validation for invalid login credentials', async ({ loginPage }) => {
-    await loginPage.open();
-    await skipIfConnectionVerification(loginPage, test);
-
+  test('keeps the user signed out for invalid login credentials', async ({
+    shoppingFlow,
+    loginPage,
+  }) => {
+    await shoppingFlow.openHome();
+    await shoppingFlow.openLoginPage();
     await loginPage.signInWith(`invalid.user.${Date.now()}@example.com`, 'WrongPassword123!');
 
-    expect(await loginPage.isOnLoginOrChallengePage()).toBeTruthy();
-    expect(await loginPage.showsSignInFeedback()).toBeTruthy();
+    await loginPage.expectInvalidCredentialsRejected();
   });
 
   test('keeps registration blocked when required fields are missing', async ({
+    shoppingFlow,
     registrationPage,
   }) => {
-    await registrationPage.open();
-    await skipIfConnectionVerification(registrationPage, test);
-
+    await shoppingFlow.openRegistrationPage();
     await registrationPage.submitEmptyRegistration();
 
-    expect(await registrationPage.isOnRegistrationOrChallengePage()).toBeTruthy();
-    expect(await registrationPage.showsRequiredFieldGuidance()).toBeTruthy();
+    await registrationPage.expectRegistrationRemainsOpen();
   });
 });

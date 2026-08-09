@@ -1,4 +1,5 @@
 const { BasePage } = require('./BasePage');
+const { expect } = require('@playwright/test');
 
 class ProductDetailPage extends BasePage {
   constructor(page) {
@@ -21,20 +22,53 @@ class ProductDetailPage extends BasePage {
     return (await this.productPrice.innerText()).trim();
   }
 
-  async isProductDetailsOpen() {
-    return this.isCurrentPath(/\/products\/.+/);
+  async expectProductDetailsOpen() {
+    await this.expectCurrentPath(/\/products\/.+/);
   }
 
-  async isAddToCartAvailable() {
-    return this.addToCartButton.isEnabled();
+  async expectProductName(name) {
+    await expect(this.productTitle).toHaveText(name);
   }
 
-  async isAddToCartUnavailable() {
+  async expectProductPrice() {
+    await expect(this.productPrice).toContainText(/\d/);
+  }
+
+  async expectAddToCartAvailable() {
+    await expect(this.addToCartButton).toBeEnabled();
+  }
+
+  async expectValidPurchaseState() {
+    await expect(this.addToCartButton).toBeVisible();
+    await expect
+      .poll(async () => {
+        const buttonLabel = await this.getAddToCartButtonLabel();
+        const isDisabled = await this.addToCartButton.isDisabled();
+
+        return !isDisabled || /sold out/i.test(buttonLabel);
+      })
+      .toBeTruthy();
+  }
+
+  async isSoldOut() {
+    return /sold out/i.test(await this.getAddToCartButtonLabel());
+  }
+
+  async getAddToCartButtonLabel() {
     const buttonLabel = await this.addToCartButton.inputValue().catch(async () => {
       return this.addToCartButton.textContent();
     });
 
-    return /sold out/i.test(buttonLabel || '') || !(await this.addToCartButton.isEnabled());
+    return buttonLabel || '';
+  }
+
+  async expectAddToCartUnavailable() {
+    if (await this.isSoldOut()) {
+      await expect(this.addToCartButton).toBeDisabled();
+      return;
+    }
+
+    await expect(this.addToCartButton).toBeHidden();
   }
 
   async addCurrentProductToCart() {

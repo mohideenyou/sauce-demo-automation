@@ -1,68 +1,62 @@
-const { test, expect } = require('./fixtures');
-const { skipIfConnectionVerification } = require('./siteProtection');
+const { test } = require('./fixtures');
 
 test.describe('Sauce Demo Comprehensive Test Suite', () => {
-  test.beforeEach(async ({ homePage }) => {
-    await homePage.open();
-    await skipIfConnectionVerification(homePage, test);
-  });
-
   test('validates the core catalog and cart journey', async ({
+    shoppingFlow,
     homePage,
+    headerNav,
     productsPage,
     productDetailPage,
     cartPage,
   }) => {
-    expect(await homePage.getTitle()).toBe('Sauce Demo');
-    expect(await homePage.isLogoVisible()).toBeTruthy();
-    expect(await homePage.isNavigationVisible()).toBeTruthy();
+    await shoppingFlow.openHome();
+    await homePage.expectTitle();
+    await homePage.expectLogoVisible();
+    await headerNav.expectNavigationVisible();
 
-    await homePage.openCatalog();
-    await skipIfConnectionVerification(homePage, test);
-    expect(await homePage.isCatalogOpen()).toBeTruthy();
+    await shoppingFlow.openCatalog();
+    await headerNav.expectCatalogOpen();
+    await productsPage.expectVisibleProducts();
 
-    expect(await productsPage.hasVisibleProducts()).toBeTruthy();
-
-    const firstName = await productsPage.openFirstProduct();
-    await skipIfConnectionVerification(productDetailPage, test);
-    const firstPrice = await productDetailPage.getProductPrice();
-
-    expect(await productDetailPage.getProductName()).toBe(firstName);
-    expect(firstPrice).toMatch(/\d/);
-    expect(firstPrice).not.toBe('');
-    expect(await productDetailPage.isAddToCartAvailable()).toBeTruthy();
+    const productName = await productsPage.openFirstProductAndReturnName();
+    await productDetailPage.expectProductDetailsOpen();
+    await productDetailPage.expectProductName(productName);
+    await productDetailPage.expectProductPrice();
+    await productDetailPage.expectAddToCartAvailable();
 
     await productDetailPage.addCurrentProductToCart();
-    await homePage.openCart();
-    await skipIfConnectionVerification(cartPage, test);
-
+    await shoppingFlow.openCart();
     if (await cartPage.isEmpty()) {
       test.skip(true, 'The public demo site did not persist the add-to-cart action for this run.');
     }
 
-    expect(await homePage.isCartOpen()).toBeTruthy();
-
+    await headerNav.expectCartOpen();
     await cartPage.removeFirstProduct();
-    expect(await cartPage.isEmpty()).toBeTruthy();
+    await cartPage.expectEmpty();
   });
 
   test('handles sold-out products defensively when present', async ({
-    homePage,
+    shoppingFlow,
     productsPage,
     productDetailPage,
   }) => {
-    await homePage.openCatalog();
-    await skipIfConnectionVerification(homePage, test);
+    await shoppingFlow.openHome();
+    await shoppingFlow.openCatalog();
 
     if (!(await productsPage.openFirstSoldOutProduct())) {
       test.skip(true, 'No sold-out products are currently listed.');
     }
 
-    expect(await productDetailPage.isAddToCartUnavailable()).toBeTruthy();
+    await productDetailPage.expectAddToCartUnavailable();
   });
 
-  test('keeps the UI usable on a mobile viewport', async ({ homePage }) => {
-    await homePage.useMobileViewport();
-    expect(await homePage.isLogoVisible()).toBeTruthy();
+  test('keeps the UI usable on a mobile viewport', async ({
+    shoppingFlow,
+    homePage,
+    browserActions,
+  }) => {
+    await shoppingFlow.openHome();
+    await browserActions.useMobileViewport();
+    await homePage.expectLogoVisible();
   });
 });

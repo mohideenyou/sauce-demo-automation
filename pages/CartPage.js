@@ -1,4 +1,5 @@
 const { BasePage } = require('./BasePage');
+const { expect } = require('@playwright/test');
 
 class CartPage extends BasePage {
   constructor(page) {
@@ -18,13 +19,23 @@ class CartPage extends BasePage {
     return this.emptyCartMessage.isVisible();
   }
 
-  async containsProduct(product) {
-    const cartText = await this.page.locator('body').innerText();
-    return cartText.includes(product.name) && cartText.includes(product.price);
+  cartItemByName(name) {
+    return this.cartItems.filter({ hasText: name }).first();
   }
 
-  async canCheckout() {
-    return (await this.checkoutButton.isVisible()) && (await this.checkoutButton.isEnabled());
+  async expectProductInCart({ name, price }) {
+    const cartItem = this.cartItemByName(name);
+    await expect(cartItem).toBeVisible();
+    await expect(cartItem).toContainText(price);
+  }
+
+  async expectCheckoutAvailable() {
+    await expect(this.checkoutButton).toBeVisible();
+    await expect(this.checkoutButton).toBeEnabled();
+  }
+
+  async expectEmpty() {
+    await expect(this.emptyCartMessage).toBeVisible();
   }
 
   async removeFirstProduct() {
